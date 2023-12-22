@@ -29,14 +29,12 @@ See accompanying file LICENSE or a copy at https://www.boost.org/LICENSE_1_0.txt
 """
 
 
-
 import __main__
 import ctypes
 import ctypes.util
 from os import chdir, environ
 from os.path import abspath, dirname, isabs, isdir, isfile, join
 from sys import platform
-
 
 
 class PyTessyError(Exception):
@@ -49,7 +47,6 @@ class PyTessyError(Exception):
     pass
 
 
-
 class TesseractHandler(object):
     """
     TesseractHandler class
@@ -60,8 +57,6 @@ class TesseractHandler(object):
     _lib = None
     _api = None
 
-
-
     class TessBaseAPI(ctypes._Pointer):
         """
         TessBaseAPI
@@ -70,8 +65,6 @@ class TesseractHandler(object):
         """
 
         _type_ = type('_TessBaseAPI', (ctypes.Structure,), {})
-
-
 
     def __init__(self, lib_path=None,  data_path=None, language='eng'):
         """
@@ -89,8 +82,6 @@ class TesseractHandler(object):
                                       language.encode('ascii')):
             raise PyTessyError('Failed to initalize Tesseract-OCR library.')
 
-
-
     def get_text(self):
         """
         Gets text as utf-8 decoded string
@@ -103,8 +94,6 @@ class TesseractHandler(object):
         if result:
             return result.decode('utf-8')
 
-
-
     def get_text_raw(self):
         """
         Gets text as raw bytes data
@@ -114,8 +103,6 @@ class TesseractHandler(object):
 
         self._check_setup()
         return self._lib.TessBaseAPIGetUTF8Text(self._api)
-
-
 
     def set_image(self, imagedata, width, height, bytes_per_pixel, bytes_per_line,
                   resolution):
@@ -138,8 +125,6 @@ class TesseractHandler(object):
                                       bytes_per_pixel, bytes_per_line)
         self._lib.TessBaseAPISetSourceResolution(self._api, resolution)
 
-
-
     @classmethod
     def setup_lib(cls, lib_path=None):
         """
@@ -153,7 +138,7 @@ class TesseractHandler(object):
             return
         lib_path = ctypes.util.find_library(lib_path)
         if lib_path is None:
-             raise PyTessyError('Ctypes couldn\'t find Tesseract-OCR library')
+            raise PyTessyError('Ctypes couldn\'t find Tesseract-OCR library')
         cls._lib = lib = ctypes.CDLL(lib_path)
 
         lib.TessBaseAPICreate.restype = cls.TessBaseAPI         # handle
@@ -177,10 +162,12 @@ class TesseractHandler(object):
         lib.TessBaseAPIGetUTF8Text.argtypes = (cls.TessBaseAPI, )   # handle
 
         lib.TessBaseAPISetSourceResolution.restype = None               # void
-        lib.TessBaseAPISetSourceResolution.argtypes = (cls.TessBaseAPI, # handle
+        lib.TessBaseAPISetSourceResolution.argtypes = (cls.TessBaseAPI,  # handle
                                                        ctypes.c_int)    # ppi
 
-
+        lib.TessBaseAPIClear.restype = None
+        lib.TessBaseAPIEnd.restype = None
+        lib.TessBaseAPIEnd.argtypes = (cls.TessBaseAPI,)     # handle
 
     def _check_setup(self):
         """
@@ -195,8 +182,6 @@ class TesseractHandler(object):
         if not self._api:
             raise PyTessyError('Tesseract handler api not created.')
 
-
-
     def __del__(self):
         """
         Disconnects TessBaseAPI when instance is deleted
@@ -209,6 +194,11 @@ class TesseractHandler(object):
             self._lib.TessBaseAPIDelete(self._api)
             self.closed = True
 
+    def clear(self):
+        self._lib.TessBaseAPIClear(self._api)
+
+    def end(self):
+        self._lib.TessBaseAPIEnd(self._api)
 
 
 class PyTessy(object):
@@ -223,8 +213,6 @@ class PyTessy(object):
     TESSERACT_DIRNAME = 'Tesseract-OCR'
     TESSERACT_DEFAULT_HORIZONTAL_DPI = 70
     VERSION = '0.0.1'
-
-
 
     def __init__(self, tesseract_path=None, api_version=None, lib_path=None,
                  data_path=None, language='eng', verbose_search=False):
@@ -281,13 +269,17 @@ class PyTessy(object):
                     lib_name = 'libtesseract{}'.format(api_version)
                 verbose('--- Target library name: {}'.format(lib_name))
                 if tesseract_path is not None:
-                    dirs = [tesseract_path, run_path, join(run_path, PyTessy.TESSERACT_DIRNAME)]
+                    dirs = [tesseract_path, run_path, join(
+                        run_path, PyTessy.TESSERACT_DIRNAME)]
                 else:
-                    dirs = [run_path, join(run_path, PyTessy.TESSERACT_DIRNAME)]
+                    dirs = [run_path, join(
+                        run_path, PyTessy.TESSERACT_DIRNAME)]
                 if 'PROGRAMFILES' in environ:
-                    dirs.append(join(environ['PROGRAMFILES'], PyTessy.TESSERACT_DIRNAME))
+                    dirs.append(
+                        join(environ['PROGRAMFILES'], PyTessy.TESSERACT_DIRNAME))
                 if 'PROGRAMFILES(X86)' in environ:
-                    dirs.append(join(environ['PROGRAMFILES(X86)'], PyTessy.TESSERACT_DIRNAME))
+                    dirs.append(
+                        join(environ['PROGRAMFILES(X86)'], PyTessy.TESSERACT_DIRNAME))
                 for dir in dirs:
                     test = join(dir, '{}.dll'.format(lib_name))
                     if isfile(test):
@@ -297,13 +289,17 @@ class PyTessy(object):
                     else:
                         verbose('    {} FAILED.'.format(test))
                 if lib_path is None:
-                    raise FileNotFoundError('Cannot locate Tesseract-OCR library.')
+                    raise FileNotFoundError(
+                        'Cannot locate Tesseract-OCR library.')
             elif platform.startswith('linux'):
-                raise NotImplementedError('PyTessy: Library search on Linux is not implemented yet.')
+                raise NotImplementedError(
+                    'PyTessy: Library search on Linux is not implemented yet.')
             elif platform.startswith('darwin'):
-                raise NotImplementedError('PyTessy: Library search on MacOS is not implemented yet.')
+                raise NotImplementedError(
+                    'PyTessy: Library search on MacOS is not implemented yet.')
             else:
-                raise NotImplementedError('PyTessy: Library search on this system is not implemented.')
+                raise NotImplementedError(
+                    'PyTessy: Library search on this system is not implemented.')
         tess_path = dirname(abspath(lib_path))
         no_tessdata = True
         if data_path is not None:
@@ -316,16 +312,15 @@ class PyTessy(object):
                     data_path = test_path
                     break
             if data_path is None:
-                raise FileNotFoundError('PyTessy: Couldn\'t find "tessdata" directory.')
+                raise FileNotFoundError(
+                    'PyTessy: Couldn\'t find "tessdata" directory.')
         chdir(tess_path)
         self._tess = TesseractHandler(lib_path=lib_path, data_path=data_path,
                                       language=language)
         chdir(run_path)
 
-
-
     def justread(self, raw_image_ctypes, width, height, bytes_per_pixel,
-                  bytes_per_line, resolution=96):
+                 bytes_per_line, resolution=96):
         """
         Reads text as utf-8 string from raw image data without any check
         ----------------------------------------------------------------
@@ -343,8 +338,6 @@ class PyTessy(object):
         self._tess.set_image(raw_image_ctypes, width, height, bytes_per_pixel,
                              bytes_per_line, resolution)
         return self._tess.get_text()
-
-
 
     def justread_raw(self, raw_image_ctypes, width, height, bytes_per_pixel,
                      bytes_per_line, resolution=96):
@@ -365,8 +358,6 @@ class PyTessy(object):
         self._tess.set_image(raw_image_ctypes, width, height, bytes_per_pixel,
                              bytes_per_line, resolution)
         return self._tess.get_text()
-
-
 
     def read(self, imagedata, width, height, bytes_per_pixel, resolution=96,
              raw=False):
@@ -392,6 +383,11 @@ class PyTessy(object):
             return self.justread(imagedata, width, height, bytes_per_pixel,
                                  bytes_per_line, resolution)
 
+    def clear_tesseract(self):
+        self._tess.clear()
+
+    def end_tesseract(self):
+        self._tess.end()
 
 
 if __name__ == '__main__':
