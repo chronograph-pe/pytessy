@@ -92,7 +92,9 @@ class TesseractHandler(object):
         self._check_setup()
         result = self._lib.TessBaseAPIGetUTF8Text(self._api)
         if result:
-            return result.decode('utf-8')
+            text = result.decode('utf-8')
+            del result
+            return text
 
     def get_text_raw(self):
         """
@@ -247,7 +249,8 @@ class PyTessy(object):
                  FileNotFoundError          If cannot found "tessdata" directory.
         """
 
-        run_path = dirname(abspath(__main__.__file__))
+        run_path = dirname(abspath(__main__.__file__)) if '__file__' in dir(
+            __main__) else os.environ['PYTESSY_RUN_PATH']
         no_lib = True
         if lib_path is not None:
             if isfile(lib_path):
