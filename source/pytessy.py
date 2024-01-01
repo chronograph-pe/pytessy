@@ -249,7 +249,7 @@ class PyTessy(object):
                  FileNotFoundError          If cannot found "tessdata" directory.
         """
 
-        run_path = os.environ['PYTESSY_RUN_PATH'] if 'PYTESSY_RUN_PATH' in os.environ else dirname(
+        run_path = environ['PYTESSY_RUN_PATH'] if 'PYTESSY_RUN_PATH' in environ else dirname(
             abspath(__main__.__file__))
         no_lib = True
         if lib_path is not None:
