@@ -262,11 +262,7 @@ class PyTessy(object):
         run_path = dirname(abspath(__main__.__file__))
         no_lib = True
         if lib_path is not None:
-            if isfile(lib_path):
-                no_lib = False
-            else:
-                raise FileNotFoundError('PyTessy: lib_path: "{}" doesn\'t exist.'
-                                        .format(lib_path))
+            no_lib = False
         if no_lib:
             if verbose_search:
                 verbose = lambda *pa, **pk: print(*pa, **pk)
