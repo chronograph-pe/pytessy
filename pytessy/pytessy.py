@@ -71,9 +71,7 @@ class TesseractHandler(object):
 
         _type_ = type('_TessBaseAPI', (ctypes.Structure,), {})
 
-
-
-    def __init__(self, lib_path=None,  data_path=None, language='eng'):
+    def __init__(self, lib_path=None, data_path=None, language="eng", psm=3):
         """
         Initializes Tesseract-OCR api handler object instance
         -----------------------------------------------------
@@ -88,7 +86,7 @@ class TesseractHandler(object):
         if self._lib.TessBaseAPIInit3(self._api, data_path.encode('ascii'),
                                       language.encode('ascii')):
             raise PyTessyError('Failed to initalize Tesseract-OCR library.')
-
+        self._lib.TessBaseAPISetPageSegMode(self._api, psm)
 
 
     def get_text(self):
@@ -176,10 +174,14 @@ class TesseractHandler(object):
         lib.TessBaseAPIGetUTF8Text.restype = ctypes.c_char_p        # text
         lib.TessBaseAPIGetUTF8Text.argtypes = (cls.TessBaseAPI, )   # handle
 
-        lib.TessBaseAPISetSourceResolution.restype = None               # void
-        lib.TessBaseAPISetSourceResolution.argtypes = (cls.TessBaseAPI, # handle
-                                                       ctypes.c_int)    # ppi
+        lib.TessBaseAPISetSourceResolution.restype = None  # void
+        lib.TessBaseAPISetSourceResolution.argtypes = (
+            cls.TessBaseAPI,  # handle
+            ctypes.c_int,
+        )  # ppi
 
+        lib.TessBaseAPISetPageSegMode.restype = None
+        lib.TessBaseAPISetPageSegMode.argtypes = (cls.TessBaseAPI, ctypes.c_int)
 
 
     def _check_setup(self):
@@ -224,10 +226,16 @@ class PyTessy(object):
     TESSERACT_DEFAULT_HORIZONTAL_DPI = 70
     VERSION = '0.0.1'
 
-
-
-    def __init__(self, tesseract_path=None, api_version=None, lib_path=None,
-                 data_path=None, language='eng', verbose_search=False):
+    def __init__(
+        self,
+        tesseract_path=None,
+        api_version=None,
+        lib_path=None,
+        data_path=None,
+        language="eng",
+        verbose_search=False,
+        psm=3,
+    ):
         """
         Initializes PyTessy instance
         ----------------------------
@@ -314,8 +322,9 @@ class PyTessy(object):
             if data_path is None:
                 raise FileNotFoundError('PyTessy: Couldn\'t find "tessdata" directory.')
         chdir(tess_path)
-        self._tess = TesseractHandler(lib_path=lib_path, data_path=data_path,
-                                      language=language)
+        self._tess = TesseractHandler(
+            lib_path=lib_path, data_path=data_path, language=language, psm=psm
+        )
         chdir(run_path)
 
 
