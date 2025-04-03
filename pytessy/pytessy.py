@@ -87,6 +87,9 @@ class TesseractHandler(object):
                                       language.encode('ascii')):
             raise PyTessyError('Failed to initalize Tesseract-OCR library.')
         self._lib.TessBaseAPISetPageSegMode(self._api, psm)
+        self._lib.TessBaseAPISetVariable(
+            self._api, "debug_file".encode("ascii"), "/dev/null".encode("ascii")
+        )
 
 
     def get_text(self):
@@ -137,7 +140,6 @@ class TesseractHandler(object):
         self._lib.TessBaseAPISetSourceResolution(self._api, resolution)
 
 
-
     @classmethod
     def setup_lib(cls, lib_path=None):
         """
@@ -183,6 +185,12 @@ class TesseractHandler(object):
         lib.TessBaseAPISetPageSegMode.restype = None
         lib.TessBaseAPISetPageSegMode.argtypes = (cls.TessBaseAPI, ctypes.c_int)
 
+        lib.TessBaseAPISetVariable.restype = None
+        lib.TessBaseAPISetVariable.argtypes = (
+            cls.TessBaseAPI,
+            ctypes.c_char_p,
+            ctypes.c_char_p,
+        )
 
     def _check_setup(self):
         """
